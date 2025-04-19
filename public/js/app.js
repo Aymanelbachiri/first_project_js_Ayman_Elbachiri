@@ -36,7 +36,7 @@ function validateAmount(money) {
 }
 function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email) || email.length <= 10) {
         email = '';
         return 'Invalid email';
     } else return 'Valid email';
@@ -90,7 +90,7 @@ function signUp() {
                 exit();
                 return;
             } else if (emailValidationResult !== 'Valid email') {
-                alert('Invalid email.');
+                alert('Email should be valid and at least 10 characters long.');
             }
         } while (emailValidationResult !== 'Valid email');
         if (emailValidationResult === 'Valid email') {
@@ -252,6 +252,7 @@ function takeLoan(trigger) {
     }
     let amount;
     let possibleLoanAmount = currentUser.balance * 0.2
+    let cut = currentUser.balance * 0.1
     if (trigger == 'userMenu') {
         do {
             amount = prompt('Enter the amount you want to get as a loan (maximum amount : ' + possibleLoanAmount + ' DH): ').trim().replaceAll(' ', '');
@@ -277,13 +278,19 @@ function takeLoan(trigger) {
         }
     } else {
         currentUser.loans.forEach(loan => {
-            if (loan.status == 'Ongoing') {
-                let cut = currentUser.balance * 0.1
+            if (loan.status == 'Ongoing' && currentUser.balance >= cut) {
                 loan.repaidAmount += cut
                 currentUser.balance -= cut
+                alert('Repayed ' + cut + ' DH to your loan.')
+                currentUser.history.push(`Loan repaid: ${cut}`)
                 if (loan.repaidAmount >= loan.amount) {
                     loan.status = 'Completed'
+                    alert('Loan completed.')
+                    currentUser.history.push(`Loan completed`)
                 }
+            } else {
+                alert('You dont have enough balance to repay the loan.')
+                userMenu()
             }
         })
     }
@@ -304,7 +311,7 @@ function userMenu() {
                 changePassword();
                 break;
             case '4':
-                takeLoan();
+                takeLoan('userMenu');
                 break;
             case '5':
                 invest();
