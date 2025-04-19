@@ -170,8 +170,9 @@ function signIn() {
     }
 }
 function deposit() {
+    let amount;
     do {
-        let amount = prompt('Enter the amount you want to deposit: ').trim().replaceAll(' ', '');
+        amount = prompt('Enter the amount you want to deposit: ').trim().replaceAll(' ', '');
         amountValidation = validateAmount(amount);
         if (amount === 'exit') {
             exit();
