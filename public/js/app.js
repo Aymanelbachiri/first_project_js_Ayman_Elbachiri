@@ -161,6 +161,8 @@ function signIn() {
     if (users[userIndex].password == password) {
         currentUser = users[userIndex];
         alert('Signed-in successfully.');
+        invest();
+        takeLoan();
         userMenu();
     } else {
         alert('Invalid password.');
@@ -269,126 +271,168 @@ function changePassword(trigger) {
             } else if (newPasswordConfirmation !== newPassword) {
                 alert('Passwords do not match. Retry.');
                 changePassword();
-            }else {
+            } else {
                 users[emailAccountCheck].password = newPassword;
-                users[emailAccountCheck].history.push(`Password change`);
-                alert('Password change successful.');
+                users[emailAccountCheck].history.push(`Password reseted`);
+                alert('Password reseted successfully.');
                 userMenu();
             }
 
         }
     }
-    function takeLoan(trigger) {
-        class Loans {
-            constructor(status, amount, repaidAmount) {
-                this.status = status
-                this.amount = amount
-                this.repaidAmount = repaidAmount
-            }
+}
+function takeLoan(trigger) {
+    class Loans {
+        constructor(status, amount, repaidAmount) {
+            this.status = status
+            this.amount = amount
+            this.repaidAmount = repaidAmount
         }
-        let amount;
-        let possibleLoanAmount = currentUser.balance * 0.2
-        let cut = currentUser.balance * 0.1
-        if (trigger == 'userMenu') {
-            do {
-                amount = prompt('Enter the amount you want to get as a loan (maximum amount : ' + possibleLoanAmount + ' DH): ').trim().replaceAll(' ', '');
-                amountValidation = validateAmount(amount);
-                if (amount === 'exit') {
-                    exit();
-                    return;
-                }
-                if (amountValidation !== 'Valid amount') {
-                    alert(amountValidation)
-                }
-            } while (amountValidation !== 'Valid amount');
-            if (amountValidation == 'Valid amount' && amount <= possibleLoanAmount) {
-                currentUser.balance += amount
-                let loan = new Loans('Ongoing', amount, 0)
-                currentUser.loans.push(loan)
-                alert('Loan taken successfully.')
-                currentUser.history.push(`Loan taken: ${amount}`)
-                userMenu()
-            } else {
-                alert('Amount is greater than possible loan amount')
-                takeLoan()
+    }
+    let amount;
+    let possibleLoanAmount = currentUser.balance * 0.2
+    let cut = currentUser.balance * 0.1
+    if (trigger == 'userMenu') {
+        do {
+            amount = prompt('Enter the amount you want to get as a loan (maximum amount : ' + possibleLoanAmount + ' DH): ').trim().replaceAll(' ', '');
+            amountValidation = validateAmount(amount);
+            if (amount === 'exit') {
+                exit();
+                return;
             }
+            if (amountValidation !== 'Valid amount') {
+                alert(amountValidation)
+            }
+        } while (amountValidation !== 'Valid amount');
+        if (amountValidation == 'Valid amount' && amount <= possibleLoanAmount) {
+            currentUser.balance += amount
+            let loan = new Loans('Ongoing', amount, 0)
+            currentUser.loans.push(loan)
+            alert('Loan taken successfully.')
+            currentUser.history.push(`Loan taken: ${amount}`)
+            userMenu()
         } else {
-            currentUser.loans.forEach(loan => {
-                if (loan.status == 'Ongoing' && currentUser.balance >= cut) {
-                    loan.repaidAmount += cut
-                    currentUser.balance -= cut
-                    alert('Repayed ' + cut + ' DH to your loan.')
-                    currentUser.history.push(`Loan repaid: ${cut}`)
-                    if (loan.repaidAmount >= loan.amount) {
-                        loan.status = 'Completed'
-                        alert('Loan completed.')
-                        currentUser.history.push(`Loan completed`)
-                    }
-                } else {
-                    alert('You dont have enough balance to repay the loan.')
-                    userMenu()
+            alert('Amount is greater than possible loan amount')
+            takeLoan()
+        }
+    } else {
+        currentUser.loans.forEach(loan => {
+            if (loan.status == 'Ongoing' && currentUser.balance >= cut) {
+                loan.repaidAmount += cut
+                currentUser.balance -= cut
+                alert('Repayed ' + cut + ' DH to your loan.')
+                currentUser.history.push(`Loan repaid: ${cut}`)
+                if (loan.repaidAmount >= loan.amount) {
+                    loan.status = 'Completed'
+                    alert('Loan completed.')
+                    currentUser.history.push(`Loan completed`)
                 }
-            })
+            } else {
+                alert('You dont have enough balance to repay the loan.')
+                userMenu()
+            }
+        })
+    }
+}
+function invest(trigger) {
+    class Investments {
+        constructor(status, amount, profit) {
+            this.status = status
+            this.amount = amount
+            this.profit = profit
+        }
+    }
+    let amount;
+    if (trigger == 'userMenu') {
+        do {
+            amount = prompt('Enter the amount you want to invest: ').trim().replaceAll(' ', '');
+            amountValidation = validateAmount(amount);
+            if (amount === 'exit') {
+            exit();
+            return;
+        }
+        if (amountValidation !== 'Valid amount') {
+            alert(amountValidation)
+        }
+    } while (amountValidation !== 'Valid amount');
+    if (amountValidation === 'Valid amount') {
+        currentUser.balance -= amount;
+        currentUser.investment.push(new Investments('Ongoing', amount, amount * 1.2));
+        alert('Investment successful.');
+        currentUser.history.push(`Invested: ${amount}`);
+        userMenu();
+    }
+}else {
+    currentUser.investment.forEach(investment => {
+        if (investment.status == 'Ongoing' && investment.amount < investment.profit) {
+            currentUser.balance += investment.amount * 0.2;
+            currentUser.history.push(`Investment profit: ${investment.amount * 0.2}`);
+        }else if (investment.status == 'Ongoing' && investment.amount > investment.profit) {
+            investment.status = 'Completed';
+            currentUser.history.push(`Investment completed`);
+        }
+    })
+}
+}
+function history() {
+    currentUser.history.forEach(history => {
+        console.log(history);
+    })
+}
+function userMenu() {
+    let choice = '';
+    while (choice != 'exit') {
+        choice = prompt('Hello ' + currentUser.name + ' choose an action to do at the bank (1-4): \n 1.Deposit \n 2.Withdraw \n 3.Change password \n 4.Take loan \n 5.Invest \n 6.History \n 7.logout')
+        switch (choice) {
+            case '1':
+                deposit();
+                break;
+            case '2':
+                withdraw();
+                break;
+            case '3':
+                changePassword('userMenu');
+                break;
+            case '4':
+                takeLoan('userMenu');
+                break;
+            case '5':
+                invest('userMenu');
+                break;
+            case '6':
+                history();
+                break;
+            case '7':
+                alert('Thank you, Have a great day !.')
+                currentUser = null;
+                start();
+                break;
+        }
+        break;
+    }
+}
+function start() {
+    let choice = ''
+    while (choice != 'exit' || choice != 4) {
+        choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
+        switch (choice) {
+            case '1':
+                signUp()
+                break;
+            case '2':
+                signIn()
+                break;
+            case '3':
+                changePassword()
+                break;
+            case '4' || 'exit':
+                alert('Thank you for the visit have a great day !.')
+                exit();
+            default:
+                alert('Invalid choice.');
+                break;
         }
 
     }
-    function userMenu() {
-        let choice = '';
-        while (choice != 'exit') {
-            choice = prompt('Hello ' + currentUser.name + ' choose an action to do at the bank (1-4): \n 1.Deposit \n 2.Withdraw \n 3.Change password \n 4.Take loan \n 5.Invest \n 6.History \n 7.logout')
-            switch (choice) {
-                case '1':
-                    deposit();
-                    break;
-                case '2':
-                    withdraw();
-                    break;
-                case '3':
-                    changePassword();
-                    break;
-                case '4':
-                    takeLoan('userMenu');
-                    break;
-                case '5':
-                    invest();
-                    break;
-                case '6':
-                    history();
-                    break;
-                case '7':
-                    alert('Thank you, Have a great day !.')
-                    currentUser = null;
-                    start();
-                    break;
-            }
-            break;
-        }
-    }
-    function start() {
-        let choice = ''
-        while (choice != 'exit' || choice != 4) {
-            choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
-            switch (choice) {
-                case '1':
-                    signUp()
-                    break;
-                case '2':
-                    signIn()
-                    break;
-                case '3':
-                    resetPassword()
-                    break;
-                case '4':
-                    alert('Thank you for the visit have a great day !.')
-                    exit();
-                case 'exit':
-                    alert('Thank you for the visit have a great day !.')
-                    exit();
-                default:
-                    alert('Invalid choice.');
-                    break;
-            }
-
-        }
-    }
-    start()
+}
+start()
