@@ -1,5 +1,6 @@
 let currentUser;
 let users = [];
+let depositLimit = 1000;
 class User {
     constructor(name, email, age, password, balance, loans, investment, history) {
         this.name = name;
@@ -25,6 +26,13 @@ function validateAge(age) {
         age = '';
         return 'Invalid age';
     } else return 'Valid age';
+}
+function validateAmount(money) {
+    let moneyExp = /^[0-9]*$/
+    if (!moneyExp.test(money) || money <= 0 || money == '') {
+        money = '';
+        return 'Invalid amount';
+    } else return 'Valid amount';
 }
 function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -75,9 +83,8 @@ function signUp() {
         }
     } while (nameValidationResult !== 'Valid Name');
     if (nameValidationResult === 'Valid Name') {
-
         do {
-            email = prompt('Enter your email: ').replaceAll(' ', '');
+            email = prompt('Enter your email: ').toLowerCase().replaceAll(' ', '');
             emailValidationResult = validateEmail(email);
             if (email === 'exit') {
                 exit();
@@ -132,30 +139,139 @@ function signUp() {
         }
     }
 }
-
-function start() {
-    let choice = ''
-    while (choice != 'exit' || choice != 4) {
-        choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
-        switch (choice) {
-            case '1':
-                signUp()
-                break;
-            case '2':
-                console.log('1');
-                alert('2.')
-                break;
-            case '3':
-                console.log('1');
-                alert('3')
-                break;
-            case '4':
-                alert('Thank you for the visit have a great day !.')
-                break;
+function signIn() {
+    let email;
+    let password;
+    let userIndex;
+    do {
+        email = prompt('Enter your email: ');
+        if (email === 'exit') {
+            exit();
+            return;
         }
-        break;
-
+        userIndex = users.findIndex(e => e.email === email);
+        if (userIndex === -1) {
+            alert('Email does not exist, please sign-up.');
+        }
+    } while (userIndex === -1);
+    password = prompt('Enter your password: ');
+    if (password === 'exit') {
+        exit();
+        return;
+    }
+    if (users[userIndex].password == password) {
+        currentUser = users[userIndex];
+        alert('Signed-in successfully.');
+        userMenu();
+    } else {
+        alert('Invalid password.');
+        start();
     }
 }
-// start()
-signUp()
+function deposit() {
+    do {
+        let amount = prompt('Enter the amount you want to deposit: ').trim().replaceAll(' ','');
+        amountValidation = validateAmount(amount);
+        if (amount === 'exit') {
+            exit();
+            return;
+        }
+        if (amountValidation !== 'Valid amount'){
+            alert(amountValidation)
+        }
+    } while (amountValidation !== 'Valid amount');
+    if (amountValidation === 'Valid amount' && amount <= depositLimit) {
+        currentUser.balance += amount;
+        depositLimit -= amount;
+        currentUser.history.push(`Deposit: ${amount}`);
+        alert('Deposit successful.');
+        userMenu();
+    } else if (amountValidation === 'Valid amount' && amount > depositLimit) {
+        alert('Deposit limit is 1000DH per session, please enter a smaller amount, you can deposit ' + depositLimit + ' DH.');
+        deposit()
+    }
+}
+function withdraw() {
+    do {
+        let amount = prompt('Enter the amount you want to withdraw: ').trim().replaceAll(' ','');
+        amountValidation = validateAmount(amount);
+        if (amount === 'exit') {
+            exit();
+            return;
+        }
+        if (amountValidation !== 'Valid amount'){
+            alert(amountValidation)
+        }
+    } while (amountValidation !== 'Valid amount');
+    if (amountValidation === 'Valid amount' && amount <= currentUser.balance) {
+        currentUser.balance -= amount;
+        currentUser.history.push(`Withdrew: ${amount}`);
+        alert('withdrawal successful.');
+        userMenu();
+    } else if (amountValidation === 'Valid amount' && amount > currentUser.balance) {
+        alert('You dont have enoug balance to withdraw the selected amount.');
+        withdraw()
+    }
+}
+function name(params) {
+    
+}
+function userMenu() {
+    let choice = '';
+    while (choice != 'exit') {
+        choice = prompt('Hello ' + currentUser.name + ' choose an action to do at the bank (1-4): \n 1.Deposit \n 2.Withdraw \n 3.Change password \n 4.Take loan \n 5.Invest \n 6.History \n 7.logout')
+        switch (choice) {
+            case '1':
+                deposit();
+                break;
+            case '2':
+                withdraw();
+                break;
+            case '3':
+                changePassword();
+                break;
+            case '4':
+                takeLoan();
+                break;
+            case '5':
+                invest();
+                break;
+            case '6':
+                history();
+                break;
+            case '7':
+                alert('Thank you, Have a great day !.')
+                currentUser = null;
+                start();
+                break;
+            }
+            break;
+    }
+}
+function start() {
+    let choice = ''
+        while (choice != 'exit' || choice != 4) {
+            choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
+            switch (choice) {
+                case '1':
+                    signUp()
+                    break;
+                case '2':
+                    console.log('1');
+                    alert('2.')
+                    break;
+                case '3':
+                    console.log('1');
+                    alert('3')
+                    break;
+                case '4':
+                    alert('Thank you for the visit have a great day !.')
+                    break;
+                default:
+                    alert('Invalid choice.');
+                    break;
+            }
+
+        }
+    }
+    start()
