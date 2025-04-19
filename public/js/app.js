@@ -1,5 +1,5 @@
-let users = [];
 let currentUser;
+let users = [];
 class User {
     constructor(name, email, age, password, balance, loans, investment, history) {
         this.name = name;
@@ -87,6 +87,10 @@ function signUp() {
             }
         } while (emailValidationResult !== 'Valid email');
         if (emailValidationResult === 'Valid email') {
+            if (users.findIndex(e => e.email === email) !== -1) {
+                alert('Email already exists, please use a different email or sign-in.');
+                start();
+            }
             do {
                 age = prompt('Enter your age: ');
                 ageValidation = validateAge(age);
