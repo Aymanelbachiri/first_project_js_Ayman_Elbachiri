@@ -213,148 +213,182 @@ function withdraw() {
         withdraw()
     }
 }
-function changePassword() {
+function changePassword(trigger) {
     let newPassword;
     let newPasswordConfirmation;
-    do {
-        newPassword = prompt('Enter your new password: ');
-        passwordValidationResult = validatePassword(newPassword);
-        if (newPassword === 'exit') {
-            exit();
-            return;
-        } else if (passwordValidationResult !== 'Valid password') {
-            alert(passwordValidationResult);
-        }
-    } while (passwordValidationResult !== 'Valid password');
-    if (passwordValidationResult === 'Valid password' && newPassword != currentUser.password) {
-        newPasswordConfirmation = prompt('Confirm your new password: ');
-        if (newPasswordConfirmation === 'exit') {
-            exit();
-            return;
-        } else if (newPasswordConfirmation !== newPassword) {
-            alert('Passwords do not match. Retry.');
-            changePassword();
-        } else {
-            currentUser.password = newPassword;
-            currentUser.history.push(`Password change`);
-            alert('Password change successful.');
-            userMenu();
-        }
-    }
-}
-function takeLoan(trigger) {
-    class Loans {
-        constructor(status, amount, repaidAmount) {
-            this.status = status
-            this.amount = amount
-            this.repaidAmount = repaidAmount
-        }
-    }
-    let amount;
-    let possibleLoanAmount = currentUser.balance * 0.2
-    let cut = currentUser.balance * 0.1
+    let emailAccountCheck;
     if (trigger == 'userMenu') {
         do {
-            amount = prompt('Enter the amount you want to get as a loan (maximum amount : ' + possibleLoanAmount + ' DH): ').trim().replaceAll(' ', '');
-            amountValidation = validateAmount(amount);
-            if (amount === 'exit') {
+            newPassword = prompt('Enter your new password: ');
+            passwordValidationResult = validatePassword(newPassword);
+            if (newPassword === 'exit') {
+                exit();
+                return;
+            } else if (passwordValidationResult !== 'Valid password') {
+                alert(passwordValidationResult);
+            }
+        } while (passwordValidationResult !== 'Valid password');
+        if (passwordValidationResult === 'Valid password' && newPassword != currentUser.password) {
+            newPasswordConfirmation = prompt('Confirm your new password: ');
+            if (newPasswordConfirmation === 'exit') {
+                exit();
+                return;
+            } else if (newPasswordConfirmation !== newPassword) {
+                alert('Passwords do not match. Retry.');
+                changePassword();
+            } else {
+                currentUser.password = newPassword;
+                currentUser.history.push(`Password change`);
+                alert('Password change successful.');
+                userMenu();
+            }
+        }
+    } else {
+        do {
+            email = prompt('To reset your account password, enter your email: ');
+            emailAccountCheck = users.findIndex(e => e.email === email)
+            if (emailAccountCheck === -1) {
+                alert('Email does not exist, please sign-up.');
+            }
+            if (email === 'exit') {
                 exit();
                 return;
             }
-            if (amountValidation !== 'Valid amount') {
-                alert(amountValidation)
+        } while (emailAccountCheck === -1);
+        if (emailAccountCheck !== -1) {
+            newPassword = prompt('Enter your new password: ');
+            passwordValidationResult = validatePassword(newPassword);
+            if (passwordValidationResult !== 'Valid password') {
+                alert(passwordValidationResult);
             }
-        } while (amountValidation !== 'Valid amount');
-        if (amountValidation == 'Valid amount' && amount <= possibleLoanAmount) {
-            currentUser.balance += amount
-            let loan = new Loans('Ongoing', amount, 0)
-            currentUser.loans.push(loan)
-            alert('Loan taken successfully.')
-            currentUser.history.push(`Loan taken: ${amount}`)
-            userMenu()
-        } else {
-            alert('Amount is greater than possible loan amount')
-            takeLoan()
-        }
-    } else {
-        currentUser.loans.forEach(loan => {
-            if (loan.status == 'Ongoing' && currentUser.balance >= cut) {
-                loan.repaidAmount += cut
-                currentUser.balance -= cut
-                alert('Repayed ' + cut + ' DH to your loan.')
-                currentUser.history.push(`Loan repaid: ${cut}`)
-                if (loan.repaidAmount >= loan.amount) {
-                    loan.status = 'Completed'
-                    alert('Loan completed.')
-                    currentUser.history.push(`Loan completed`)
-                }
-            } else {
-                alert('You dont have enough balance to repay the loan.')
-                userMenu()
-            }
-        })
-    }
-
-}
-function userMenu() {
-    let choice = '';
-    while (choice != 'exit') {
-        choice = prompt('Hello ' + currentUser.name + ' choose an action to do at the bank (1-4): \n 1.Deposit \n 2.Withdraw \n 3.Change password \n 4.Take loan \n 5.Invest \n 6.History \n 7.logout')
-        switch (choice) {
-            case '1':
-                deposit();
-                break;
-            case '2':
-                withdraw();
-                break;
-            case '3':
+        } else if (passwordValidationResult === 'Valid password') {
+            newPasswordConfirmation = prompt('Confirm your new password: ');
+            if (newPasswordConfirmation === 'exit') {
+                exit();
+                return;
+            } else if (newPasswordConfirmation !== newPassword) {
+                alert('Passwords do not match. Retry.');
                 changePassword();
-                break;
-            case '4':
-                takeLoan('userMenu');
-                break;
-            case '5':
-                invest();
-                break;
-            case '6':
-                history();
-                break;
-            case '7':
-                alert('Thank you, Have a great day !.')
-                currentUser = null;
-                start();
-                break;
+            }else {
+                users[emailAccountCheck].password = newPassword;
+                users[emailAccountCheck].history.push(`Password change`);
+                alert('Password change successful.');
+                userMenu();
+            }
+
         }
-        break;
     }
-}
-function start() {
-    let choice = ''
-    while (choice != 'exit' || choice != 4) {
-        choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
-        switch (choice) {
-            case '1':
-                signUp()
-                break;
-            case '2':
-                console.log('1');
-                alert('2.')
-                break;
-            case '3':
-                console.log('1');
-                alert('3')
-                break;
-            case '4':
-                alert('Thank you for the visit have a great day !.')
-                exit();
-            case 'exit':
-                alert('Thank you for the visit have a great day !.')
-                exit();
-            default:
-                alert('Invalid choice.');
-                break;
+    function takeLoan(trigger) {
+        class Loans {
+            constructor(status, amount, repaidAmount) {
+                this.status = status
+                this.amount = amount
+                this.repaidAmount = repaidAmount
+            }
+        }
+        let amount;
+        let possibleLoanAmount = currentUser.balance * 0.2
+        let cut = currentUser.balance * 0.1
+        if (trigger == 'userMenu') {
+            do {
+                amount = prompt('Enter the amount you want to get as a loan (maximum amount : ' + possibleLoanAmount + ' DH): ').trim().replaceAll(' ', '');
+                amountValidation = validateAmount(amount);
+                if (amount === 'exit') {
+                    exit();
+                    return;
+                }
+                if (amountValidation !== 'Valid amount') {
+                    alert(amountValidation)
+                }
+            } while (amountValidation !== 'Valid amount');
+            if (amountValidation == 'Valid amount' && amount <= possibleLoanAmount) {
+                currentUser.balance += amount
+                let loan = new Loans('Ongoing', amount, 0)
+                currentUser.loans.push(loan)
+                alert('Loan taken successfully.')
+                currentUser.history.push(`Loan taken: ${amount}`)
+                userMenu()
+            } else {
+                alert('Amount is greater than possible loan amount')
+                takeLoan()
+            }
+        } else {
+            currentUser.loans.forEach(loan => {
+                if (loan.status == 'Ongoing' && currentUser.balance >= cut) {
+                    loan.repaidAmount += cut
+                    currentUser.balance -= cut
+                    alert('Repayed ' + cut + ' DH to your loan.')
+                    currentUser.history.push(`Loan repaid: ${cut}`)
+                    if (loan.repaidAmount >= loan.amount) {
+                        loan.status = 'Completed'
+                        alert('Loan completed.')
+                        currentUser.history.push(`Loan completed`)
+                    }
+                } else {
+                    alert('You dont have enough balance to repay the loan.')
+                    userMenu()
+                }
+            })
         }
 
     }
-}
-start()
+    function userMenu() {
+        let choice = '';
+        while (choice != 'exit') {
+            choice = prompt('Hello ' + currentUser.name + ' choose an action to do at the bank (1-4): \n 1.Deposit \n 2.Withdraw \n 3.Change password \n 4.Take loan \n 5.Invest \n 6.History \n 7.logout')
+            switch (choice) {
+                case '1':
+                    deposit();
+                    break;
+                case '2':
+                    withdraw();
+                    break;
+                case '3':
+                    changePassword();
+                    break;
+                case '4':
+                    takeLoan('userMenu');
+                    break;
+                case '5':
+                    invest();
+                    break;
+                case '6':
+                    history();
+                    break;
+                case '7':
+                    alert('Thank you, Have a great day !.')
+                    currentUser = null;
+                    start();
+                    break;
+            }
+            break;
+        }
+    }
+    function start() {
+        let choice = ''
+        while (choice != 'exit' || choice != 4) {
+            choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
+            switch (choice) {
+                case '1':
+                    signUp()
+                    break;
+                case '2':
+                    signIn()
+                    break;
+                case '3':
+                    resetPassword()
+                    break;
+                case '4':
+                    alert('Thank you for the visit have a great day !.')
+                    exit();
+                case 'exit':
+                    alert('Thank you for the visit have a great day !.')
+                    exit();
+                default:
+                    alert('Invalid choice.');
+                    break;
+            }
+
+        }
+    }
+    start()
