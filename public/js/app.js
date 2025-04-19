@@ -130,9 +130,8 @@ function signUp() {
                     } else {
                         let client = new User(name, email, age, password, 1000, [], [], []);
                         users.push(client);
-                        console.table(users);
-                        console.table(client);
                         alert('Sign-up successful.');
+                        start()
                     }
                 }
             }
@@ -170,13 +169,13 @@ function signIn() {
 }
 function deposit() {
     do {
-        let amount = prompt('Enter the amount you want to deposit: ').trim().replaceAll(' ','');
+        let amount = prompt('Enter the amount you want to deposit: ').trim().replaceAll(' ', '');
         amountValidation = validateAmount(amount);
         if (amount === 'exit') {
             exit();
             return;
         }
-        if (amountValidation !== 'Valid amount'){
+        if (amountValidation !== 'Valid amount') {
             alert(amountValidation)
         }
     } while (amountValidation !== 'Valid amount');
@@ -192,14 +191,15 @@ function deposit() {
     }
 }
 function withdraw() {
+    let amount;
     do {
-        let amount = prompt('Enter the amount you want to withdraw: ').trim().replaceAll(' ','');
+        amount = prompt('Enter the amount you want to withdraw: ').trim().replaceAll(' ', '');
         amountValidation = validateAmount(amount);
         if (amount === 'exit') {
             exit();
             return;
         }
-        if (amountValidation !== 'Valid amount'){
+        if (amountValidation !== 'Valid amount') {
             alert(amountValidation)
         }
     } while (amountValidation !== 'Valid amount');
@@ -213,8 +213,81 @@ function withdraw() {
         withdraw()
     }
 }
-function name(params) {
-    
+function changePassword() {
+    let newPassword;
+    let newPasswordConfirmation;
+    do {
+        newPassword = prompt('Enter your new password: ');
+        passwordValidationResult = validatePassword(newPassword);
+        if (newPassword === 'exit') {
+            exit();
+            return;
+        } else if (passwordValidationResult !== 'Valid password') {
+            alert(passwordValidationResult);
+        }
+    } while (passwordValidationResult !== 'Valid password');
+    if (passwordValidationResult === 'Valid password' && newPassword != currentUser.password) {
+        newPasswordConfirmation = prompt('Confirm your new password: ');
+        if (newPasswordConfirmation === 'exit') {
+            exit();
+            return;
+        } else if (newPasswordConfirmation !== newPassword) {
+            alert('Passwords do not match. Retry.');
+            changePassword();
+        } else {
+            currentUser.password = newPassword;
+            currentUser.history.push(`Password change`);
+            alert('Password change successful.');
+            userMenu();
+        }
+    }
+}
+function takeLoan(trigger) {
+    class Loans {
+        constructor(status, amount, repaidAmount) {
+            this.status = status
+            this.amount = amount
+            this.repaidAmount = repaidAmount
+        }
+    }
+    let amount;
+    let possibleLoanAmount = currentUser.balance * 0.2
+    if (trigger == 'userMenu') {
+        do {
+            amount = prompt('Enter the amount you want to get as a loan (maximum amount : ' + possibleLoanAmount + ' DH): ').trim().replaceAll(' ', '');
+            amountValidation = validateAmount(amount);
+            if (amount === 'exit') {
+                exit();
+                return;
+            }
+            if (amountValidation !== 'Valid amount') {
+                alert(amountValidation)
+            }
+        } while (amountValidation !== 'Valid amount');
+        if (amountValidation == 'Valid amount' && amount <= possibleLoanAmount) {
+            currentUser.balance += amount
+            let loan = new Loans('Ongoing', amount, 0)
+            currentUser.loans.push(loan)
+            alert('Loan taken successfully.')
+            currentUser.history.push(`Loan taken: ${amount}`)
+            userMenu()
+        } else {
+            alert('Amount is greater than possible loan amount')
+            takeLoan()
+        }
+    } else {
+        currentUser.loans.forEach(loan => {
+            if (loan.status == 'Ongoing') {
+                let cut = currentUser.balance * 0.1
+                loan.repaidAmount += cut
+                currentUser.balance -= cut
+                if (loan.repaidAmount >= loan.amount) {
+                    loan.status = 'Completed'
+                }
+            }
+        })
+    }
+
 }
 function userMenu() {
     let choice = '';
@@ -244,34 +317,37 @@ function userMenu() {
                 currentUser = null;
                 start();
                 break;
-            }
-            break;
+        }
+        break;
     }
 }
 function start() {
     let choice = ''
-        while (choice != 'exit' || choice != 4) {
-            choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
-            switch (choice) {
-                case '1':
-                    signUp()
-                    break;
-                case '2':
-                    console.log('1');
-                    alert('2.')
-                    break;
-                case '3':
-                    console.log('1');
-                    alert('3')
-                    break;
-                case '4':
-                    alert('Thank you for the visit have a great day !.')
-                    break;
-                default:
-                    alert('Invalid choice.');
-                    break;
-            }
-
+    while (choice != 'exit' || choice != 4) {
+        choice = prompt('Hello choose an action to do at the bank (1-4): \n 1.sign-up \n 2.sign-in \n 3.reset password \n 4.exit')
+        switch (choice) {
+            case '1':
+                signUp()
+                break;
+            case '2':
+                console.log('1');
+                alert('2.')
+                break;
+            case '3':
+                console.log('1');
+                alert('3')
+                break;
+            case '4':
+                alert('Thank you for the visit have a great day !.')
+                exit();
+            case 'exit':
+                alert('Thank you for the visit have a great day !.')
+                exit();
+            default:
+                alert('Invalid choice.');
+                break;
         }
+
     }
-    start()
+}
+start()
